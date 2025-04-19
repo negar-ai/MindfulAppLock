@@ -1,6 +1,4 @@
-# MindfulAppLock
-Use your Apps mindfully 
-## Mindful App Lock
+# Mindful App Lock
 Mindful App Lock is an Android app designed to help users reduce the time spent on distracting apps by introducing mindful moments before accessing them. The app provides a simple, effective way to improve focus and mindfulness through brief challenges or tasks.
 
 Features
