@@ -11,6 +11,6 @@ Customizable Task Difficulty: The difficulty of challenges progressively increas
 Tech Stack
 Frontend: Kivy (Python-based framework for building cross-platform apps)
 
-Languages: Python, Kivy Language (KV)
+Languages: Python
 
 Packaging for Android: Buildozer (to package the app for Android)
