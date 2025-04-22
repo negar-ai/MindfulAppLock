@@ -1,6 +1,7 @@
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, ListProperty, ColorProperty
+from kivy.graphics import RoundedRectangle
 import json
 import datetime
 
@@ -32,6 +33,6 @@ class MindfulApp(App):
         except FileExistsError:
             pass
         return MainScreen()
-
+    
 if __name__ == "__main__":
     MindfulApp().run()
