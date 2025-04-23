@@ -1,11 +1,14 @@
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import StringProperty, ListProperty, ColorProperty
 from kivy.graphics import RoundedRectangle
 import json
 import datetime
+from kivy.lang import Builder
 
-class MainScreen(BoxLayout):
+# Change MainScreen from BoxLayout to Screen
+class MainScreen(Screen):
     message = StringProperty("Welcome! Choose an app to open.")
 
     def open_app(self):
@@ -24,6 +27,12 @@ class MainScreen(BoxLayout):
                 json.dump(data, f)
                 f.truncate()
                 self.message = "Emergency access granted."
+                
+class BreathingTaskScreen(Screen):
+    pass
+
+class WindowManager(ScreenManager):
+    pass
 
 class MindfulApp(App):
     def build(self):
@@ -32,7 +41,7 @@ class MindfulApp(App):
                 json.dump({"emergency_used": ""}, f)
         except FileExistsError:
             pass
-        return MainScreen()
+        return Builder.load_file('mindful.kv')
     
 if __name__ == "__main__":
     MindfulApp().run()
