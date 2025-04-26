@@ -1,113 +1,155 @@
 #: import Factory kivy.factory.Factory
 
 <RoundedButton@Button>:
-    background_color: 0, 0, 0, 0  # Transparent background
+    background_color: 0, 0, 0, 0
     background_normal: ''
     canvas.before:
         Color:
-            rgba: (0.34, 0.71, 0.73, 1) if self.state == 'normal' else (0.24, 0.61, 0.63, 1)  # Default color, changes when pressed
+            rgba: (0.34, 0.71, 0.73, 1) if self.state == 'normal' else (0.24, 0.61, 0.63, 1)
         RoundedRectangle:
             size: self.size
             pos: self.pos
             radius: [60, 60, 60, 60]
 
 <RoundedButtonEm@Button>:
-    background_color: 0, 0, 0, 0  # Transparent background
+    background_color: 0, 0, 0, 0
     background_normal: ''
     canvas.before:
         Color:
-            rgba: (1, 0.31, 0.17,1) if self.state == 'normal' else (0.24, 0.61, 0.63, 1)  # Default color, changes when pressed
+            rgba: (1, 0.31, 0.17, 1) if self.state == 'normal' else (0.24, 0.61, 0.63, 1)
         RoundedRectangle:
             size: self.size
             pos: self.pos
             radius: [60, 60, 60, 60]
 
-<MainScreen>:  
+<BreathingWidget>:
+    size_hint: 1, 1
+    # No canvas.after elements to avoid extra circles
+            
+    Label:
+        text: root.countdown_text
+        font_name: "Chocolate Covered Raindrops BOLD.ttf"
+        font_size: 70
+        color: 0, 0.31, 0.31, 1  # Changed to teal color for better visibility
+        bold: True
+        size_hint: None, None
+        size: root.width * 0.2, root.width * 0.2
+        pos: root.center_x - root.width * 0.1, root.center_y - root.width * 0.1
+
+<MainScreen>:
     name: "main"
     BoxLayout:
-        orientation: 'vertical'     
-        padding: 40     
+        orientation: 'vertical'
+        padding: 40
         spacing: 30
         size: root.width, root.height
-        canvas.before:         
-            Color:             
-                rgba: 0.99, 0.97, 0.93, 1  # Off white background         
-            Rectangle:             
-                pos: self.pos             
-                size: self.size      
-        
-        Label:         
-            text: root.message         
-            font_name: "Chocolate Covered Raindrops.ttf"         
-            font_size: 50         
-            color: 0, 0.31, 0.31, 1  # Deep Teal text         
-            halign: 'center'         
-            valign: 'middle'         
-            text_size: self.size         
-            size_hint: (1, 0.4)       
-        
-        RoundedButton:         
-            text: "Start Challenge"         
-            font_name: "Chocolate Covered Raindrops BOLD.ttf"         
-            font_size: 60         
-            color: 0, 0.31, 0.31, 1  # Deep Teal text         
-            size_hint: (0.8, 0.12)         
-            pos_hint: {"center_x": 0.5}         
+        canvas.before:
+            Color:
+                rgba: 0.99, 0.97, 0.93, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        Label:
+            text: root.message
+            font_name: "Chocolate Covered Raindrops.ttf"
+            font_size: 50
+            color: 0, 0.31, 0.31, 1
+            halign: 'center'
+            valign: 'middle'
+            text_size: self.size
+            size_hint: (1, 0.4)
+
+        RoundedButton:
+            text: "Start Challenge"
+            font_name: "Chocolate Covered Raindrops BOLD.ttf"
+            font_size: 60
+            color: 0, 0.31, 0.31, 1
+            size_hint: (0.8, 0.12)
+            pos_hint: {"center_x": 0.5}
             on_press: app.root.current = "breath"
-           
-        RoundedButtonEm:         
-            text: "Emergency Access"         
-            font_name: "Chocolate Covered Raindrops BOLD.ttf"         
-            font_size: 60              
-            color: 1, 1, 1, 1  # White text         
-            size_hint: (0.8, 0.12)         
-            pos_hint: {"center_x": 0.5}         
+
+        RoundedButtonEm:
+            text: "Emergency Access"
+            font_name: "Chocolate Covered Raindrops BOLD.ttf"
+            font_size: 60
+            color: 1, 1, 1, 1
+            size_hint: (0.8, 0.12)
+            pos_hint: {"center_x": 0.5}
             on_press: root.emergency_unlock()
 
 <BreathingTaskScreen>:
     name: "breath"
-    
     BoxLayout:
         orientation: "vertical"
         size: root.width, root.height
         padding: 20
         spacing: 10
-        canvas.before:         
-            Color:             
-                rgba: 0.99, 0.97, 0.93, 1  # Off white background         
-            Rectangle:             
-                pos: self.pos             
+        canvas.before:
+            Color:
+                rgba: 0.99, 0.97, 0.93, 1
+            Rectangle:
+                pos: self.pos
                 size: self.size
 
         Label:
+            id: breathing_title
             text: "Breathing Exercise"
             font_name: "Chocolate Covered Raindrops.ttf"
             font_size: 60
             color: 0, 0.31, 0.31, 1
-            size_hint: 1, 0.3
-            
-        Label:
-            text: "Practice deep breathing to calm your mind"
-            font_name: "Chocolate Covered Raindrops.ttf"
-            font_size: 60
-            color: 0, 0.31, 0.31, 1
-            size_hint: 1, 0.3
-            
-        RoundedButton:
-            text: "Never Mind"
-            font_name: "Chocolate Covered Raindrops BOLD.ttf"
-            font_size: 60
-            color: 0, 0.31, 0.31, 1  # Deep Teal text  
-            size_hint: (0.8, 0.12)         
-            pos_hint: {"center_x": 0.5}    
-            on_press: app.root.current = "main"
+            size_hint: 1, 0.15
 
-# Root widget definition with proper indentation
+        Label:
+            id: timer_label
+            text: root.timer_text
+            font_name: "Chocolate Covered Raindrops BOLD.ttf"
+            font_size: 50
+            color: 0, 0.31, 0.31, 1
+            size_hint: 1, 0.1
+
+        Label:
+            id: phase_label
+            text: breathing_widget.phase_text
+            font_name: "Chocolate Covered Raindrops BOLD.ttf"
+            font_size: 70
+            color: 0, 0.31, 0.31, 1
+            size_hint: 1, 0.1
+
+        BreathingWidget:
+            id: breathing_widget
+            size_hint: 1, 0.45
+
+        BoxLayout:
+            orientation: "vertical"
+            size_hint: 1, 0.2
+            spacing: 10
+            padding: [40, 5]
+
+            RoundedButton:
+                id: complete_button
+                text: "Complete!"
+                font_name: "Chocolate Covered Raindrops BOLD.ttf"
+                font_size: 60
+                color: 0, 0.31, 0.31, 1
+                size_hint: (0.8, 0.12)
+                opacity: root.complete_button_opacity
+                disabled: not root.timer_complete
+                pos_hint: {"center_x": 0.5}
+                on_press: root.complete_exercise()
+
+            RoundedButtonEm:
+                text: "Never Mind"
+                font_name: "Chocolate Covered Raindrops BOLD.ttf"
+                font_size: 60
+                color: 1, 1, 1, 1
+                size_hint: 0.8, 0.12
+                pos_hint: {"center_x": 0.5}
+                on_press: root.go_back()
+
 WindowManager:
     id: screen_manager
     MainScreen:
-        name: "main"
         id: main_screen
     BreathingTaskScreen:
-        name: "breath"
         id: breathing_screen
