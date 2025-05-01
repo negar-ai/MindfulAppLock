@@ -4,11 +4,118 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import StringProperty, ListProperty, ColorProperty, NumericProperty, BooleanProperty
 import json
 import datetime
+import os
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
-from kivy.graphics import Color, Ellipse
+from kivy.graphics import Color, Ellipse,  RoundedRectangle
+from kivy.uix.textinput import TextInput
 from kivy.clock import Clock
 from kivy.animation import Animation
+
+class WindowManager(ScreenManager):
+    pass
+
+class MindfulApp(App):
+    def build(self):
+        # Ensure app_data.json exists
+        try:
+            with open("app_data.json", "x") as f:
+                json.dump({"emergency_used": "", "app_unlocked": False}, f)
+        except FileExistsError:
+            pass
+            
+        # Ensure gratefulness_entries.json exists
+        try:
+            with open("gratefulness_entries.json", "x") as f:
+                json.dump({"entries": []}, f)
+        except FileExistsError:
+            pass
+            
+        # Ensure last_gratefulness_date.json exists
+        try:
+            with open("last_gratefulness_date.json", "x") as f:
+                json.dump({"last_date": ""}, f)
+        except FileExistsError:
+            pass
+            
+        return Builder.load_file('mindful.kv')
+
+def get_last_gratefulness_date():
+    try:
+        with open("last_gratefulness_date.json", "r") as f:
+            data = json.load(f)
+            return data.get('last_date', "")
+    except (FileExistsError, FileNotFoundError, json.JSONDecodeError):
+        return ""
+
+def set_last_gratefulness_date():
+    today = str(datetime.date.today())
+    with open("last_gratefulness_date.json", "w") as f:
+        json.dump({"last_date": today}, f)
+
+def should_show_gratefulness():
+    today = str(datetime.date.today())
+    last_date = get_last_gratefulness_date()
+    return last_date != today
+
+def save_gratefulness_entry(entry):
+    try:
+        with open("gratefulness_entries.json", "r") as f:
+            data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        data = {"entries": []}
+    
+    today = str(datetime.date.today())
+    new_entry = {"date": today, "entry": entry}
+    data["entries"].append(new_entry)
+    
+    with open("gratefulness_entries.json", "w") as f:
+        json.dump(data, f)
+    
+    # Update the last gratefulness date
+    set_last_gratefulness_date()
+
+def get_gratefulness_entries():
+    try:
+        with open("gratefulness_entries.json", "r") as f:
+            data = json.load(f)
+            return data.get("entries", [])
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+def unlock_app():
+    try:
+        with open("app_data.json", "r") as f:
+            data = json.load(f)
+        
+        data["app_unlocked"] = True
+        
+        with open("app_data.json", "w") as f:
+            json.dump(data, f)
+            
+        return True
+    except:
+        return False
+
+def is_app_unlocked():
+    try:
+        with open("app_data.json", "r") as f:
+            data = json.load(f)
+            return data.get("app_unlocked", False)
+    except:
+        return False
+
+def reset_app_unlock():
+    try:
+        with open("app_data.json", "r") as f:
+            data = json.load(f)
+        
+        data["app_unlocked"] = False
+        
+        with open("app_data.json", "w") as f:
+            json.dump(data, f)
+    except:
+        pass
 
 class BreathingWidget(Widget):
     radius = NumericProperty(30)
@@ -27,11 +134,8 @@ class BreathingWidget(Widget):
         self.phase_countdown = 0
         self.countdown_event = None
         
-        
         # Schedule a delayed call to ensure proper initialization
         Clock.schedule_once(self.init_graphics, 0)
-    
-    
         
     def init_graphics(self, dt):
         # Clear any existing canvas instructions
@@ -140,7 +244,6 @@ class BreathingWidget(Widget):
             return  # Stop if breathing exercise has been canceled
             
         self.cycle_count += 1
-        # print(f"Completed cycle {self.cycle_count}")
         
         # Start next cycle immediately instead of stopping after max_cycles
         self.phase_text = "Hold"
@@ -176,13 +279,25 @@ class BreathingWidget(Widget):
         self.cycle_count = 0
         self.update_circle()
 
-# Change MainScreen from BoxLayout to Screen
 class MainScreen(Screen):
-    message = StringProperty("Welcome! Choose an app to open.")
+    message = StringProperty("Start a Challenge first!")
 
-    def open_app(self):
-        # Placeholder for logic
-        self.message = "You must complete a challenge first!"
+
+    def on_enter(self):
+        # Reset app unlock status on new day
+        today = str(datetime.date.today())
+        try:
+            with open("app_data.json", "r") as f:
+                data = json.load(f)
+            
+            # If it's a new day, reset the unlock status
+            if "last_check_date" not in data or data.get("last_check_date") != today:
+                reset_app_unlock()
+                data["last_check_date"] = today
+                with open("app_data.json", "w") as f:
+                    json.dump(data, f)
+        except:
+            pass
 
     def emergency_unlock(self):
         today = str(datetime.date.today())
@@ -192,11 +307,49 @@ class MainScreen(Screen):
                 self.message = "Emergency already used today."
             else:
                 data["emergency_used"] = today
+                data["app_unlocked"] = True
                 f.seek(0)
                 json.dump(data, f)
                 f.truncate()
                 self.message = "Emergency access granted."
-                
+    
+    def start_challenge(self):
+        # Check if gratefulness task should be shown today
+        if should_show_gratefulness():
+            self.manager.current = "gratitude"
+        else:
+            self.manager.current = "breath"
+
+class GratefulnessScreen(Screen):
+    entry_text = StringProperty("")
+    message = StringProperty("What are you grateful for today?")
+    
+    def submit_entry(self):
+        if self.entry_text.strip():
+            save_gratefulness_entry(self.entry_text)
+            self.message = "Thank you for sharing your gratitude!"
+            # Close the app after short delay
+            Clock.schedule_once(self.close_app, 2)
+        else:
+            self.message = "Please enter something you're grateful for."
+    
+    def close_app(self, dt):
+        # Stop the app
+        App.get_running_app().stop()
+
+class GratefulnessHistoryScreen(Screen):
+    entries_text = StringProperty("")
+    
+    def on_enter(self):
+        entries = get_gratefulness_entries()
+        if entries:
+            entries_text = ""
+            for entry in entries:
+                entries_text += f"{entry['date']}: {entry['entry']}\n\n"
+            self.entries_text = entries_text
+        else:
+            self.entries_text = "No gratefulness entries yet."
+        
 class BreathingTaskScreen(Screen):
     timer_text = StringProperty("5:00")
     complete_button_opacity = NumericProperty(0.9) 
@@ -205,7 +358,7 @@ class BreathingTaskScreen(Screen):
     def __init__(self, **kwargs):
         super(BreathingTaskScreen, self).__init__(**kwargs)
         self.timer_event = None
-        self.time_remaining = 300  # 5 minutes in seconds
+        self.time_remaining = 10  # 5 minutes in seconds
         
     def on_enter(self):
         # Start the timer and breathing exercise when entering this screen
@@ -222,7 +375,7 @@ class BreathingTaskScreen(Screen):
             breathing_widget.start_breathing()
         
     def start_timer(self):
-        self.time_remaining = 300  # Reset to 5 minutes
+        self.time_remaining = 10  # Reset to 5 minutes
         self.timer_text = "5:00"
         self.timer_complete = False
         self.complete_button_opacity = 0.5  # Increased from 0.3 for better visibility
@@ -272,21 +425,10 @@ class BreathingTaskScreen(Screen):
         
     def complete_exercise(self):
         if self.timer_complete:
-            # Only allow completion if timer is finished
-            self.manager.current = "main"
-            # Here you could add additional logic for exercise completion
+            # Unlock the app
+            unlock_app()
+            # Close the app
+            App.get_running_app().stop()
 
-class WindowManager(ScreenManager):
-    pass
-
-class MindfulApp(App):
-    def build(self):
-        try:
-            with open("app_data.json", "x") as f:
-                json.dump({"emergency_used": ""}, f)
-        except FileExistsError:
-            pass
-        return Builder.load_file('mindful.kv')
-    
 if __name__ == "__main__":
     MindfulApp().run()

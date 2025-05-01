@@ -22,6 +22,20 @@
             pos: self.pos
             radius: [60, 60, 60, 60]
 
+<RoundedTextInput@TextInput>:
+    background_color: 0.95, 0.95, 0.95, 1
+    cursor_color: 0, 0.31, 0.31, 1
+    font_name: "Chocolate Covered Raindrops.ttf"
+    font_size: 30
+    padding: [20, 20]
+    multiline: True
+    canvas.before:
+        Color:
+            rgba: 0.8, 0.8, 0.8, 1
+        Line:
+            rounded_rectangle: (self.x, self.y, self.width, self.height, 10)
+            width: 1.5
+
 <BreathingWidget>:
     size_hint: 1, 1
     # No canvas.after elements to avoid extra circles
@@ -58,7 +72,7 @@
             halign: 'center'
             valign: 'middle'
             text_size: self.size
-            size_hint: (1, 0.4)
+            size_hint: (1, 0.3)
 
         RoundedButton:
             text: "Start Challenge"
@@ -67,7 +81,18 @@
             color: 0, 0.31, 0.31, 1
             size_hint: (0.8, 0.12)
             pos_hint: {"center_x": 0.5}
-            on_press: app.root.current = "breath"
+            on_press: root.start_challenge()
+
+        # Removed Open App button
+
+        RoundedButton:
+            text: "Gratitude History"
+            font_name: "Chocolate Covered Raindrops BOLD.ttf"
+            font_size: 60
+            color: 0, 0.31, 0.31, 1
+            size_hint: (0.8, 0.12)
+            pos_hint: {"center_x": 0.5}
+            on_press: app.root.current = "history"
 
         RoundedButtonEm:
             text: "Emergency Access"
@@ -77,6 +102,110 @@
             size_hint: (0.8, 0.12)
             pos_hint: {"center_x": 0.5}
             on_press: root.emergency_unlock()
+
+<GratefulnessScreen>:
+    name: "gratitude"
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 40
+        spacing: 30
+        size: root.width, root.height
+        canvas.before:
+            Color:
+                rgba: 0.99, 0.97, 0.93, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        Label:
+            text: root.message
+            font_name: "Chocolate Covered Raindrops.ttf"
+            font_size: 50
+            color: 0, 0.31, 0.31, 1
+            halign: 'center'
+            valign: 'middle'
+            text_size: self.size
+            size_hint: (1, 0.2)
+
+        RoundedTextInput:
+            id: gratitude_input
+            text: root.entry_text
+            color: 0, 0.31, 0.31, 1
+            foreground_color: [0, 0.31, 0.31, 1]
+            hint_text: "Enter something you're grateful for..."
+            size_hint: (0.9, 0.4)
+            pos_hint: {"center_x": 0.5}
+            on_text: root.entry_text = self.text
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: (0.9, 0.2)
+            pos_hint: {"center_x": 0.5}
+            spacing: 20
+
+            RoundedButton:
+                text: "Submit"
+                font_name: "Chocolate Covered Raindrops BOLD.ttf"
+                font_size: 50
+                color: 0, 0.31, 0.31, 1
+                on_press: root.submit_entry()
+
+            RoundedButtonEm:
+                text: "Skip"
+                font_name: "Chocolate Covered Raindrops BOLD.ttf"
+                font_size: 50
+                color: 1, 1, 1, 1
+                on_press: app.root.current = "breath"
+
+<GratefulnessHistoryScreen>:
+    name: "history"
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 40
+        spacing: 30
+        size: root.width, root.height
+        canvas.before:
+            Color:
+                rgba: 0.99, 0.97, 0.93, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        Label:
+            text: "Your Gratitude Journal"
+            font_name: "Chocolate Covered Raindrops.ttf"
+            font_size: 50
+            color: 0, 0.31, 0.31, 1
+            halign: 'center'
+            valign: 'middle'
+            text_size: self.size
+            size_hint: (1, 0.2)
+
+        ScrollView:
+            size_hint: (1, 0.6)
+            do_scroll_x: False
+            do_scroll_y: True
+            
+            Label:
+                text: root.entries_text
+                font_name: "Chocolate Covered Raindrops.ttf"
+                font_size: 30
+                color: 0, 0.31, 0.31, 1
+                halign: 'left'
+                valign: 'top'
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1]
+                padding: (20, 20)
+
+        RoundedButton:
+            text: "Back to Main"
+            font_name: "Chocolate Covered Raindrops BOLD.ttf"
+            font_size: 50
+            color: 0, 0.31, 0.31, 1
+            size_hint: (0.8, 0.12)
+            pos_hint: {"center_x": 0.5}
+            on_press: app.root.current = "main"
 
 <BreathingTaskScreen>:
     name: "breath"
@@ -151,5 +280,9 @@ WindowManager:
     id: screen_manager
     MainScreen:
         id: main_screen
+    GratefulnessScreen:
+        id: gratitude_screen
     BreathingTaskScreen:
         id: breathing_screen
+    GratefulnessHistoryScreen:
+        id: history_screen
