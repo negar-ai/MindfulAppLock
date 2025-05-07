@@ -116,8 +116,10 @@ def is_app_unlocked():
     try:
         with open("app_data.json", "r") as f:
             data = json.load(f)
-            return data.get("app_unlocked", False)
-    except:
+            # Make sure we're getting a boolean value
+            return bool(data.get("app_unlocked", False))
+    except Exception as e:
+        print(f"Error checking app unlock status: {e}")
         return False
 
 def reset_app_unlock():
@@ -309,24 +311,63 @@ class MainScreen(Screen):
         if is_app_unlocked():
             self.message = "App is unlocked for today!"
         else:
-            self.message = "let's see how bad you \nwant to use this app!"
+            self.message = "Start a Challenge first!"
+
+        # Debug logs for troubleshooting
+        try:
+            with open("app_data.json", "r") as f:
+                data = json.load(f)
+                print(f"App data: {data}")
+                print(f"App unlocked status: {data.get('app_unlocked', False)}")
+                print(f"Emergency used: {data.get('emergency_used', '')}")
+                print(f"Today's date: {str(datetime.date.today())}")
+        except Exception as e:
+            print(f"Error reading app data: {e}")
 
     def check_new_day(self):
         # Reset app unlock status on new day
         today = str(datetime.date.today())
         try:
+            # First check if the file exists
+            if not os.path.exists("app_data.json"):
+                # Create the file with default values
+                with open("app_data.json", "w") as f:
+                    json.dump({
+                        "emergency_used": "",
+                        "app_unlocked": False,
+                        "last_check_date": today
+                    }, f)
+                return
+
+            # Read the current data
             with open("app_data.json", "r") as f:
                 data = json.load(f)
 
             # If it's a new day, reset the unlock status
             if "last_check_date" not in data or data.get("last_check_date") != today:
-                reset_app_unlock()
+                # Reset app unlock but preserve other data
+                data["app_unlocked"] = False
+                data["emergency_used"] = ""
                 data["last_check_date"] = today
+
+                # Write the updated data back
                 with open("app_data.json", "w") as f:
                     json.dump(data, f)
+
+                print(f"Reset app for new day: {today}")
+
         except Exception as e:
             print(f"Error checking new day: {e}")
-            pass
+            # Create a new file if there was an error
+            try:
+                with open("app_data.json", "w") as f:
+                    json.dump({
+                        "emergency_used": "",
+                        "app_unlocked": False,
+                        "last_check_date": today
+                    }, f)
+            except Exception as inner_e:
+                print(f"Failed to create new app_data.json: {inner_e}")
 
     def emergency_unlock(self):
         today = str(datetime.date.today())
@@ -343,17 +384,29 @@ class MainScreen(Screen):
                 data["emergency_used"] = today
                 data["app_unlocked"] = True
 
-                # Save changes
+                # Make sure to write the file before closing the app
                 with open("app_data.json", "w") as f:
                     json.dump(data, f)
 
-                self.message = "Emergency Access granted."
+                self.message = "Emergency access granted."
 
                 # Close the app after granting emergency access
                 Clock.schedule_once(self.close_app, 2)
         except Exception as e:
             print(f"Error in emergency unlock: {e}")
-            self.message = "You've already used Emergency Access!."
+            # Create a new app_data.json file with emergency unlocked if there was an error
+            try:
+                with open("app_data.json", "w") as f:
+                    json.dump({
+                        "emergency_used": today,
+                        "app_unlocked": True,
+                        "last_check_date": today
+                    }, f)
+                self.message = "Emergency access granted."
+                Clock.schedule_once(self.close_app, 2)
+            except Exception as inner_e:
+                print(f"Failed to create new app_data.json: {inner_e}")
+                self.message = "Error processing emergency access."
 
     def close_app(self, dt):
         # Stop the app

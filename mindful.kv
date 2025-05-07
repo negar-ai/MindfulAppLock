@@ -82,6 +82,7 @@
             size_hint: (0.8, 0.12)
             pos_hint: {"center_x": 0.5}
             on_press: root.start_challenge()
+            on_press: root.manager.transition.direction = "left"
 
         # Removed Open App button
 
@@ -93,6 +94,7 @@
             size_hint: (0.8, 0.12)
             pos_hint: {"center_x": 0.5}
             on_press: app.root.current = "history"
+            on_press: root.manager.transition.direction = "up"
 
         RoundedButtonEm:
             text: "Emergency Access"
@@ -130,16 +132,16 @@
         RoundedTextInput:
             id: gratitude_input
             text: root.entry_text
-            color: 0, 0.31, 0.31, 1
-            foreground_color: [0, 0.31, 0.31, 1]
+            color: 1, 0.31, 0.31, 1
+            foreground_color: (2, 0.31, 0.31, 1)
             hint_text: "Enter something you're grateful for..."
-            size_hint: (0.9, 0.4)
+            size_hint: (0.8, 0.3)
             pos_hint: {"center_x": 0.5}
             on_text: root.entry_text = self.text
 
         BoxLayout:
             orientation: 'horizontal'
-            size_hint: (0.9, 0.2)
+            size_hint: (0.8, 0.2)
             pos_hint: {"center_x": 0.5}
             spacing: 20
 
@@ -156,6 +158,7 @@
                 font_size: 50
                 color: 1, 1, 1, 1
                 on_press: app.root.current = "breath"
+                on_press: root.manager.transition.direction = "left"
 
 <GratefulnessHistoryScreen>:
     name: "history"
@@ -206,6 +209,7 @@
             size_hint: (0.8, 0.12)
             pos_hint: {"center_x": 0.5}
             on_press: app.root.current = "main"
+            on_press: root.manager.transition.direction = "down"
 
 <BreathingTaskScreen>:
     name: "breath"
@@ -275,6 +279,7 @@
                 size_hint: 0.8, 0.12
                 pos_hint: {"center_x": 0.5}
                 on_press: root.go_back()
+                on_press: root.manager.transition.direction = "right"
 
 WindowManager:
     id: screen_manager
